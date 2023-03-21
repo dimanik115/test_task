@@ -1,9 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <br>
+    <a href="{{ url_for('index') }}">Home</a>
+
     <h2>{{ file['name'] }}</h2>
-    <h3>{{ file['columns'] }}</h3>
-    {% for line in file['content'].decode().split('\r\n') %}
-        <p>{{ line }}</p>
-    {% endfor %}
+
+    <small>Enter the existing columns, separated by commas</small>
+    <form action="{{ url_for('filter', file_id=file['id']) }}" method="POST">
+        <input type="submit" value="Filter">
+        <input type="text" id="filter" name="filter">
+    </form>
+    <small>Enter the existing columns, separated by commas then <b>space</b> and True|False, 
+        separated by commas for ascending</small>
+    <form action="{{ url_for('sort', file_id=file['id']) }}" method="POST">
+        <input type="submit" value="Sort">
+        <input type="text" id="sort" name="sort">
+    </form>
+    <p></p>
+    {{ df.to_html()|safe }}
 {% endblock %}

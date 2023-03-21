@@ -3,6 +3,5 @@ DROP TABLE IF EXISTS files;
 CREATE TABLE files (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    content TEXT NOT NULL,
-    columns TEXT NOT NULL
+    content TEXT NOT NULL
 );

@@ -1,4 +1,5 @@
 import sqlite3
+import io
 import pandas as pd
 from flask import Flask, render_template, request, url_for, flash, redirect
 from werkzeug.exceptions import abort
@@ -21,12 +22,16 @@ def check_csv(filename):
     ext = filename.rsplit('.', 1)[1]
     return ext == 'csv'
 
-def add_db_file(filename, csv, columns):
+def get_dateframe(file):
+    df = pd.read_csv (io.StringIO(file['content'].decode('utf-8')), sep=",+")
+    return df
+
+def add_db_file(filename, csv):
     conn = get_db_connection()
     cur = conn.cursor()
     binary = sqlite3.Binary(csv)
-    cur.execute("INSERT INTO files (name, content, columns) VALUES (?, ?, ?)",
-                 (filename, binary, columns.decode('utf-8')))
+    cur.execute("INSERT INTO files (name, content) VALUES (?, ?)",
+                 (filename, binary))
     conn.commit()
     conn.close()
 
@@ -43,16 +48,45 @@ def index():
 @app.route('/<int:file_id>')
 def file(file_id):
     file = get_file(file_id)
-    return render_template('file.html', file=file)
+    return render_template('file.html', file=file, df=get_dateframe(file))
 
+@app.route('/<int:file_id>/filter', methods=['POST', 'GET'])
+def filter(file_id):
+    file = get_file(file_id)
+    df = get_dateframe(file)
+    if request.method == 'POST':
+        res = request.form['filter']
+        if res:
+            try:
+                df = df[res.split(',')]
+            except KeyError:
+                flash('Enter the existing columns, separated by commas')                                 
+    return render_template('file.html', file=file, df=df)
+    
+@app.route('/<int:file_id>/sort', methods=['POST', 'GET'])
+def sort(file_id):
+    file = get_file(file_id)
+    df = get_dateframe(file)
+    if request.method == 'POST':
+        res = request.form['sort']
+        if res:
+            try:
+                columns, str_bool = res.split(' ')
+                columns_list = columns.split(',')
+                bool_list = [i == "True" for i in str_bool.split(',')]
+                df = df.sort_values(columns_list, ascending=bool_list)
+            except (KeyError, ValueError) as e:
+                flash('Enter the existing columns, separated by commas and True|False, '+
+                      'separated by commas for ascending')                                 
+    return render_template('file.html', file=file, df=df)
+    
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
     if request.method == 'POST':
         file = request.files['file']
         if file and check_csv(file.filename):
-            columns = file.readline()
             csv_file = file.read()
-            add_db_file(file.filename, csv_file, columns)
+            add_db_file(file.filename, csv_file)
             flash('File is uploaded')
         else:
             flash("Only csv files")
