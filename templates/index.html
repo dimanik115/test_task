@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <a href="{{ url_for('login') }}">
+        <h2>Авторизация</h2>
+    </a>
     <table border="0">
         <tr><td valign="top">
             <form action="{{url_for('upload')}}" method="POST" enctype="multipart/form-data">

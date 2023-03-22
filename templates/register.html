@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <a href="{{ url_for('index') }}">
+        <h2>Главная</h2>
+    </a>
+    <form action="/register" method="POST">
+        <p><label>Имя: </label><input type="text" name="name" value="" requied /></p>
+        <p><label>Email: </label><input type="text" name="email" value="" requied /></p>
+        <p><label>Пароль: </label><input type="password" name="psw" value="" requied /></p>
+        <p><label>Повтор пароля: </label><input type="password" name="psw2" value="" requied /></p>
+        <p><input type="submit" value="Регистрация" /></p>
+    </form>
+{% endblock %}
