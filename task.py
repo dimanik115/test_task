@@ -12,6 +12,12 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def init_db():
+    conn = get_db_connection()
+    with open('schema.sql') as f:
+        conn.executescript(f.read())
+        conn.commit()
+
 def get_file(file_id):
     conn = get_db_connection()
     file = conn.execute('SELECT * FROM files WHERE id = ?',
