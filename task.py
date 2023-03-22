@@ -8,7 +8,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from User_Login import UserLogin
 
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(app.config['DATABASE'])
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -62,6 +62,7 @@ def get_user_by_email(email):
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = b'\xb8\xbe<[\xce=\x9a\x9ey^\x8f\xd1\x1e\xf6^\xde'
+app.config['DATABASE'] = 'database.db'
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -93,9 +94,11 @@ def filter(file_id):
         res = request.form['filter']
         if res:
             try:
-                df = df[res.split(',')]
-            except KeyError:
-                flash('Enter the existing columns, separated by commas')                                 
+                indexes = [int(i) for i in res.split(',')]
+                df = df.iloc[:, indexes]
+            except:
+                flash('Enter the indexes (from 0 to length-1) of existing columns, '+
+                      'separated by commas')                                 
     return render_template('file.html', file=file, df=df)
     
 @app.route('/<int:file_id>/sort', methods=['POST', 'GET'])
@@ -107,13 +110,17 @@ def sort(file_id):
         res = request.form['sort']
         if res:
             try:
-                columns, str_bool = res.split(' ')
-                columns_list = columns.split(',')
-                bool_list = [i == "True" for i in str_bool.split(',')]
+                columns, *str_bool = res.split(' ')
+                ind_col = columns.split(',')
+                if len(str_bool) == 0:
+                    bool_list = [True]*len(ind_col)
+                else:
+                    bool_list = [i == "True" for i in str_bool[0].split(',')]
+                columns_list = [df.columns[int(i)] for i in ind_col]
                 df = df.sort_values(columns_list, ascending=bool_list)
-            except (KeyError, ValueError) as e:
-                flash('Enter the existing columns, separated by commas and True|False, '+
-                      'separated by commas for ascending')                                 
+            except:
+                flash('Enter the indexes (from 0 to length-1) of existing columns, '+
+                      'separated by commas and True|False, separated by commas for ascending')                                 
     return render_template('file.html', file=file, df=df)
     
 @app.route('/upload', methods=['POST', 'GET'])

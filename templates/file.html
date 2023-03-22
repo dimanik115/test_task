@@ -6,13 +6,13 @@
 
     <h2>{{ file['name'] }}</h2>
 
-    <small>Enter the existing columns, separated by commas</small>
+    <small>Enter the indexes (from 0 to length-1) of existing columns, separated by commas</small>
     <form action="{{ url_for('filter', file_id=file['id']) }}" method="POST">
         <input type="submit" value="Filter">
         <input type="text" id="filter" name="filter">
     </form>
-    <small>Enter the existing columns, separated by commas then <b>space</b> and True|False, 
-        separated by commas for ascending</small>
+    <small>Enter the indexes (from 0 to length-1) of existing columns, separated by commas
+         then <b>space</b> and True|False (default True), separated by commas for ascending</small>
     <form action="{{ url_for('sort', file_id=file['id']) }}" method="POST">
         <input type="submit" value="Sort">
         <input type="text" id="sort" name="sort">
